@@ -1,0 +1,641 @@
+%%-----Es paquete para ver reproducir la carátula del informe técnico de la CNEA.
+%
+%   \usepackage[opcion]{itecnea}
+%      donde 'opcion' puede ser '2autores' (default) , '3autores' o '4autores'
+%
+%   Está basado en la última actualización del formato FO-PR-001 r 2 y FO-PR-002 r 3 obtenidos del
+%   Sistema de Control de calidad de la CNEA (http://intranet.cnea.gov.ar/calidad/doc-gescal.html). Ambos
+%   documentos están vigentes desde el 14/12/2009 y se pueden descargar del url anterior.
+%   Se trató de que reproduciera lo más fielmente posible dichos documentos (no siempre fue posible).
+%   Por tal motivo, muchas veces se sacrificó la estética por la fidelidad.
+%   Este formato fue realizado por comodidad personal, no es un documento oficial de CNEA.
+%   Funciona bien al compilarlo con pdfLatex, al menos dos veces (por las referencias cruzadas que tiene)
+%
+%   Si por alguna razón los campos a completar quedan muy largos, es probable que las medidas resulten inadecuadas
+%   y haya que corregir directamente el archivo itecnea.sty. Vale lo mismo en el caso en que no hayan dos autores y dos
+%   revisores. (En itecnea.sty está comentado cómo se cambia, pero habría que poner una cláusula condicional, que no sé
+%   cómo se hace)
+%
+%   Serán bienvenidas las críticas y las muchas mejoras que pudieran hacerse.
+%
+%   Pablo Bellino
+%   10 de Febrero de 2010
+%
+%   Versión 0.1   (11/02/2010)  Se agregó la tabla de contenidos y se corrigieron las dimensiones de la página
+%%% MODIFICACIONES
+%   Se agregó espacio para un tercer revisor. Se corrigieron errores en la utilización de variables (W4 y W5). Sólo se modificaron
+%   las medidas de los anchos W4 a W7 y de los altos H5 y H6. Se definió la variable H6a porque ahora los renglones de
+%   "REVISIONES" no mide lo mismo que el de "Preparó, Revisó , etc".
+%   Se definió la variable para el tercer revisor.
+%   Se agregó una cláusula condicional para que cuando no haya coautor o tercer revisor, no aparezcan las barras de la fecha.
+%   Se reemplazó la sección "ALCANCE" por la de "RESUMEN", siendo esta la más adecuada para un informe técnico
+%
+%   P.B.
+%   16 de Abril de 2012
+%
+%%% MODIFICACIONES
+%   Se cambió el \alcance por \resumen
+%   Los revisores dos y tres ahora son optativos (pueden estar definidos o no). Si no están definidos o están vacíos queda
+%   en blanco.
+%
+%   03 de diciembre de 2013
+%
+%%% MODIFICACIONES
+%   Se agregó la opción de tener dos, tres o cuatro lugares para los autores.
+%   Automáticamente se asignan 3 lugares para los revisores si hay dos autores. Si no, van siempre dos.
+%   Si no se especifican opciones, se toman dos autores por default.
+%   Se agregaron variables para acomodar automáticamente la parte en donde se escriben los autores y revisores.
+%
+%   30 de julio de 2014
+%
+%%% MODIFICACIONES
+%   Se permite completar el primer renglón de las revisiones, con la idea de poner la fecha en que se hizo el informe como Rev.0
+%   Se crearon tres variables nuevas para tal fin:
+%       \RevCeroNum  -> número de la revisión
+%       \RevCeroDate -> fecha de la revisión
+%       \RevCeroMod  -> modificación de la revisión
+%   Para más de una revisión, se debe repetir lo mismo para los renglones siguientes. A menos que se ecuentra una forma más fácil de
+%   manejar variables con varios índices, se tendrían que agregar tres variables distintas por cada renglón.
+%   Para agregar la información, se modificó la definición del commando '\renglón' donde se le agregan tres entradas más (ya tenía una
+%   que era la posición donde iba ubicado el renglón).
+%
+%   22 de septiembre de 2017
+%
+%%% MODIFICACIONES
+%   Se cambió el membrete que aparece en la carátula. Se puso "GERENCIA REACTORES Y CENTRALES NUCLEARES"
+%   en lugar de "COMISIÓN NACIONAL DE ENERGÍA ATÓMICA".
+%   Se cambió el ancho de W2 y W3 para que el código del informe entrara en una misma línea
+%
+%   30 de abril de 2019
+%
+%%% MODIFICACIONES
+%   Se agregó la opción de especificar autores y revisores por separado. Se pusieron cláusulas condicionales
+%   para tratar de contemplar las combinaciones más usuales. Se mejoró el centrado de las barras para las fechas
+%   
+%   P.B.
+%   22 de mayo de 2025  
+%
+%%% MODIFICACIONES
+%   Se agregan opciones para definir la gerencia y el tipo de documento.
+%   Se modifica tamaño e Wii para que entre nombre de GRIPRA3 en carátula
+%   
+%   P.B.
+%   26 de mayo de 2025
+%
+%%% MODIFICACIONES
+%   Se agrega la opción "liberado" para el paqueta. Con esta se agrega lo necesario en la parte de
+%   "DISTRIBUCIÓN" y "ESTADO DE DOCUMENTO"
+%   
+%   P.B.
+%   21 de julio de 2025
+%
+
+
+\ProvidesPackage{itecnea}
+
+\RequirePackage[utf8]{inputenc}                       % Para los acentos
+\RequirePackage{graphicx}                               % Para insertar el logo de CNEA
+\RequirePackage{calc}                                   % Permite poner cálculos implícitos en las medidas
+\RequirePackage{lastpage}                               % Permite utilizar Página n de n_total
+\RequirePackage{tocloft}                                % Permite modificar la tabla de contenidos (Indice)
+\RequirePackage{xcolor}
+
+
+%%%----- Son las opciones para poner al paquete--------------------------------
+\newcommand{\nau}{0}    % Indica la cantidad de espacios para autores
+\newcommand{\nre}{0}    % Indica la cantidad de espacios para revisores
+\DeclareOption{2autores}{
+  \renewcommand{\nau}{2}
+%  \renewcommand{\nre}{3}
+}
+\DeclareOption{3autores}{
+  \renewcommand{\nau}{3}
+%  \renewcommand{\nre}{2}
+}
+\DeclareOption{4autores}{
+  \renewcommand{\nau}{4}
+%  \renewcommand{\nre}{2}
+}
+\DeclareOption{2revisores}{
+  \renewcommand{\nre}{2}
+}
+\DeclareOption{3revisores}{
+  \renewcommand{\nre}{3}
+}
+\DeclareOption{4revisores}{
+  \renewcommand{\nre}{4}
+}
+
+\ExecuteOptions{2autores} % Por default
+\ExecuteOptions{2revisores} % Por default
+
+% Para definir el esado del documento
+\newif\ifliberado
+\liberadofalse % Default: false
+
+% Declare option 'liberado'
+\DeclareOption{liberado}{\liberadotrue}
+
+
+\ProcessOptions\relax
+%%%----------------------------------------------------------------------------
+
+\usepackage[absolute,showboxes]{textpos}                % Permite ubicar cajas en una dada posicón (\textblock)
+%\usepackage{tocloft}                                    % Permite modificar la tabla de contenidos (Indice)
+%\usepackage[colorgrid,texcoord]{eso-pic}[2002/11/16]   % Crea una grilla en la hoja
+
+
+%% Para utilizar la fuente Arial en todo el documento
+\renewcommand{\rmdefault}{phv}
+\renewcommand{\sfdefault}{phv}
+
+%% Definición de valores a completar cuando esté liberado
+
+\definecolor{azulliberado}{RGB}{79, 129, 230}
+\definecolor{verdeliberado}{RGB}{9, 176, 80}
+
+\ifliberado
+  \newcommand{\vigencialiberada}{Coincide con la fecha de aprobación el documento.}
+  \newcommand{\copialiberada}{\textcolor{azulliberado}{\textbf{ELECTRÓNICA.}}}
+  \newcommand{\fechaliberada}{Coincide con la fecha de aprobación.}
+  \newcommand{\textoliberado}{\noindent Una vez firmada la instancia de aprobación, se considerará al documento \textcolor{verdeliberado}{\textbf{LIBERADO.}}}
+\else
+  \newcommand{\vigencialiberada}{}
+  \newcommand{\copialiberada}{}
+  \newcommand{\fechaliberada}{}
+  \newcommand{\textoliberado}{\vspace{1cm}}
+\fi
+
+%% Configuración de la tabla de contenidos
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}   % Pone una línea punteada a las secciones
+\tocloftpagestyle{fancy}                                % Agrega el encabezado en la página de TOC
+\renewcommand{\cfttoctitlefont}{\hfill\Large}           % Pone el título
+\renewcommand{\cftaftertoctitle}{\hfill}                % en el centro
+\renewcommand{\cftsecaftersnum}{.}                      % Pone un punto luego del número de sección
+
+
+%%-----------Hace que los títulos y números de las secciones y subsecciones
+%%-----------sean del tamaño adecuado (aunque no queden bien).
+\makeatletter
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                                   {-3.5ex \@plus -1ex \@minus -.2ex}%
+                                   {2.3ex \@plus.2ex}%
+                                   {\normalfont\large\bfseries}}
+\renewcommand\subsection{%
+\@startsection{subsection}{2}{\z@}%
+              {-3.25ex\@plus -1ex \@minus -.2ex}%
+              {1.5ex \@plus .2ex}%
+              {\normalfont\normalsize\bfseries}}
+\makeatother
+
+
+
+%%-----------------------Fin secciones y subsecciones-------------------
+
+%% -----------Para poner el encabezado en todas las páginas (con imágenes y todo)
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+%%----- Parámetros de la hoja (márgenes, tamaño, etc.) ¿por qué lo puse acá?
+\setlength{\headheight}{13.6pt}
+\setlength{\topmargin}{5.7mm}
+\setlength{\footskip}{10mm}
+\setlength{\leftmargin}{24mm}
+\setlength{\headsep}{14mm}
+%\setlength{\parindent}{0pt}
+\setlength{\textheight}{220mm}
+\setlength{\textwidth}{170mm}
+\setlength{\oddsidemargin}{0mm}
+%%-----Fin de los parámetros--------------------------------------------------
+
+%%-----Configuración de los encabezados para el resto de las páginas----------
+\fancyhf{}
+\rhead{}
+\chead{}
+
+% Me sitúo en el encabezado izquierdo y allí voy poniendo todas las cajas con sus minipage.
+%
+\makeatletter
+\lhead{
+\setlength{\TPboxrulesize}{0.3mm}
+\begin{textblock*}{28mm+\TPboxrulesize}(\StartX,\StartY+8.3mm)%
+    \centering\begin{minipage}[c][19mm+\TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \centering \LARGE \textbf{CNEA}
+    \end{minipage}
+\end{textblock*}
+\begin{textblock*}{100mm+\TPboxrulesize}(\StartX+28mm,\StartY+8.3mm)%
+    \centering\begin{minipage}[c][19mm+\TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \centering \large{\@titulo}
+    \end{minipage}
+\end{textblock*}
+\begin{textblock*}{43mm+\TPboxrulesize}(\StartX+28mm+100mm,\StartY+8.3mm)%
+    \centering\noindent\begin{minipage}[c][19mm+\TPboxrulesize]{\linewidth - 1\fboxsep}%
+      \centering \small{\@codigo} \vspace{0.3em}\\ Rev.: \@revision \\ \vspace{0.3em} Página: \thepage\ de \pageref{LastPage}
+    \end{minipage}
+\end{textblock*}
+% Caja vacía para que el recuadro externo tenga líneas más gruesas
+\setlength{\TPboxrulesize}{0.6mm}
+\begin{textblock*}{\Wtot}(\StartX,\StartY+8.3mm)%
+    \begin{minipage}[c][19mm+\TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \end{minipage}
+\end{textblock*}
+\setlength{\TPboxrulesize}{0mm}
+\begin{textblock*}{\Wtot}(\StartX,\StartY+2mm)%
+\vspace{3mm} \noindent \scriptsize{\textsf{FO-PR-002 r 3}}
+\end{textblock*}
+}
+\renewcommand{\headrulewidth}{0pt}
+\makeatother
+%%-----Fin de los comandos para los encabezados----------------------------------------
+
+
+%%-----Configuraciones del paquete [textpos]------------------------------------------------
+\setlength{\TPboxrulesize}{0.6mm}      % Es el tamaño de la línea de recuadro
+\setlength{\TPMargin}{0mm}             % Márgenes dentro de los recuadros
+\textblockorigin{0cm}{0cm}             % Sitúa el origen de coordenadas en el ángulo superior izquierdo
+
+\newcommand\StartX{25mm-.5\TPboxrulesize} \newcommand\StartY{16mm-.5\TPboxrulesize}
+\newcommand\Wtot{171mm +\TPboxrulesize}
+%\newcommand\Hi{28mm+\TPboxrulesize}
+
+%%-----Definición de las alturas de todo el documento
+\newcommand\Hi{28mm}            \newcommand\Hii{19mm}                    \newcommand\Hiii{9mm}
+\newcommand\Hiv{14mm}           \newcommand\Hv{75mm}                     \newcommand\Hvi{12mm}
+\newcommand\Hvii{32mm}          \newcommand\Hviii{6mm}                   \newcommand\Hix{34mm}
+\newcommand\Hx{15mm}
+\newcommand\Hvia{7mm}
+
+%\newcommand\Hiv{16mm}  %título de tres líneas
+
+%%%%%-----Definición de los anchos de todo el documento
+\newcommand\Wi{28mm}            \newcommand\Wii{111mm}          \newcommand\Wiii{32mm}
+\ifnum \nau=2
+    \newcommand\Wiv{51mm}           \newcommand\Wv{72mm} % 2 autores + 3 revisores
+    \newcommand\Wvi{24mm}           \newcommand\Wvii{24mm}
+\else
+    \ifnum \nau=3
+        \ifnum \nre=2
+            \newcommand\Wiv{75mm}           \newcommand\Wv{48mm} % 3 autores + 2 revisores
+            \newcommand\Wvi{24mm}           \newcommand\Wvii{24mm}
+        \else
+            \newcommand\Wiv{65mm}           \newcommand\Wv{65mm} % 3 autores + 3 revisores
+            \newcommand\Wvi{21mm}           \newcommand\Wvii{20mm}
+        \fi
+    \else
+        \newcommand\Wiv{84mm}           \newcommand\Wv{46mm} % 4 autores + 2 revisores
+        \newcommand\Wvi{21mm}           \newcommand\Wvii{20mm}
+    \fi
+\fi
+
+%\newcommand\Wviii{\Wiv/2}  \newcommand\Wix{\Wiv/2}
+\newcommand{\Wviii}{\Wiv/\nau} \newcommand{\Wix}{\Wiv/\nau}
+
+\newcommand\Wx{\Wv+\Wvi+\Wvii}
+\ifnum \nau=3
+    \renewcommand{\Wx}{\Wv+\Wvi+\Wvii+\Wiv/3}
+\fi
+\ifnum \nau=4
+    \renewcommand{\Wx}{\Wv+\Wvi+\Wvii+\Wiv/2}
+\fi
+
+\newcommand\Wxi{85.5mm}
+
+
+
+%%
+%%-----Las magnitudes están numeradas desde la izquierda-arriba del documento hacia la derecha-abajo,
+%%-----de forma recurrente. Aún así, no es nada intuitivo, y conviene mirar la hoja impresa para cambiarlas.
+%%
+%%-----Fin de la configuración de textpos-------------------------------------------------------
+
+
+
+\pagestyle{empty}
+
+%%-----Defino secuencia de comando para los rengloes de "REVISIONES"----------
+\newcommand\renglon[4]{
+    \begin{textblock*}{\Wviii+\TPboxrulesize}(\StartX,#1)%
+        \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+          \centerline{\small{#2}}
+        \end{minipage}
+    \end{textblock*}
+
+    \begin{textblock*}{\Wix+\TPboxrulesize}(\StartX+\Wviii,#1)%
+        \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+          \centerline{\small{#3}}
+        \end{minipage}
+    \end{textblock*}
+
+    \begin{textblock*}{\Wx+\TPboxrulesize}(\StartX+\Wviii+\Wix,#1)%
+        \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+          \flushleft{\small{#4}}
+        \end{minipage}
+    \end{textblock*}
+}
+%%-----Fin de la definición "renglon"-----------------------------------------
+
+%%-----Defino las barras inclinadas para poner la fecha ----------------------
+\newcommand\barfecha{
+    \centering{\phantom{2330}/\phantom{10}/\phantom{0302}}\\
+}
+%%-----Fin de la definición "barfecha"
+
+\makeatletter
+
+%%-----Definiciones de las variables para la carátula-------------------
+\def\titulo#1{\def\@titulo{#1}}
+\def\gerencia#1{\def\@gerencia{#1}}
+\def\documento#1{\def\@documento{#1}}
+\def\autor#1{\def\@autor{#1}}
+\def\coautoruno#1{\def\@coautoruno{#1}}
+\def\coautordos#1{\def\@coautordos{#1}}
+\def\coautortres#1{\def\@coautortres{#1}}
+\def\codigo#1{\def\@codigo{#1}}
+\def\revision#1{\def\@revision{#1}}
+\def\calidad#1{\def\@calidad{#1}}
+\def\aprobo#1{\def\@aprobo{#1}}
+\def\revisoruno#1{\def\@revisoruno{#1}}
+\def\revisordos#1{\def\@revisordos{#1}}
+\def\revisortres#1{\def\@revisortres{#1}}
+\def\objetivo#1{\def\@objetivo{#1}}
+\def\resumen#1{\def\@resumen{#1}}
+% Definición para las revisiones
+\def\RevCeroNum#1{\def\@RevCeroNum{#1}}
+\def\RevCeroDate#1{\def\@RevCeroDate{#1}}
+\def\RevCeroMod#1{\def\@RevCeroMod{#1}}
+
+%% ---------------------Fin de las definiciones-------------------------
+
+
+%%-----Comienzo de la carátula del informe------------------------------
+\def\maketitle{%
+
+\begin{textblock*}{\Wi + \TPboxrulesize}(\StartX,\StartY)%
+    \setlength\parindent{0.48em}\begin{minipage}[c][\Hi+\TPboxrulesize]{\Hi - 10\fboxsep}%
+        \includegraphics[height=25mm,width=25mm]{LogoCNEA.pdf}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wii + \TPboxrulesize}(\StartX+\Wi,\StartY)%
+    \begin{minipage}[c][\Hii + \TPboxrulesize]{\linewidth - 9\fboxsep}%
+      \centering\Large\textbf{\@gerencia}%
+    \end{minipage}
+\end{textblock*}
+
+
+\begin{textblock*}{\Wii + \TPboxrulesize}(\StartX+\Wi,\StartY+\Hii)%
+    \begin{minipage}[c][\Hiii+ \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\Large\textbf{\@documento}%
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wiii + \TPboxrulesize}(\StartX+\Wi+\Wii,\StartY)%
+    \noindent\centering\begin{minipage}[c][\Hii + \TPboxrulesize]{35mm - 0\fboxsep}%
+    \centering
+        \@codigo \\\vspace{2mm}
+      Rev.: \@revision
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wiii+\TPboxrulesize}(\StartX+\Wi+\Wii,\StartY+\Hii)%
+    \noindent\noindent\begin{minipage}[c][\Hiii + \TPboxrulesize]{\linewidth - 0\fboxsep}%
+      \centering{Página: \thepage\ de \pageref{LastPage}}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi)%
+    \setlength\parindent{1em}\begin{minipage}[c][\Hiv + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \textbf{TÍTULO}:\hspace{3mm}\parbox[c]{145mm}{\large\textbf{\@titulo}}%
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi+\Hiv)%
+    \noindent\hspace{2mm}\begin{minipage}[t][\Hv + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \vspace{5mm}
+        \section{OBJETIVO}
+            \parbox{168mm}{\setlength{\parindent}{2em}\@objetivo}
+        \section{ALCANCE}
+            \parbox{168mm}{\setlength{\parindent}{2em}\@resumen}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wiv+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv)%
+    \begin{minipage}[c][\Hvi + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\textbf{Preparó}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wv+\TPboxrulesize}(\StartX+\Wiv,\StartY+\Hi+\Hiv+\Hv)%
+    \begin{minipage}[c][\Hvi + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\textbf{Revisó}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wvi+\TPboxrulesize}(\StartX+\Wiv+\Wv,\StartY+\Hi+\Hiv+\Hv)%
+    \noindent\centering\begin{minipage}[c][\Hvi + \TPboxrulesize]{\linewidth - 0\fboxsep}%
+      \centering\textbf{Intervino calidad}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wvii+\TPboxrulesize}(\StartX+\Wiv+\Wv+\Wvi,\StartY+\Hi+\Hiv+\Hv)%
+    \noindent\centering\begin{minipage}[c][\Hvi + \TPboxrulesize]{\linewidth - 0\fboxsep}%
+      \centering\textbf{Aprobó}
+    \end{minipage}
+\end{textblock*}
+
+
+%----------------------------Para los autores------------------------------------------
+
+\setlength{\TPboxrulesize}{0.3mm}
+\begin{textblock*}{\Wiv/\nau+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    %\vspace{20mm}
+      \parbox{\Wiv/\nau}{\centering \@autor} \\ \barfecha \vspace{0.5em}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wiv/\nau+\TPboxrulesize}(\StartX+\Wiv/\nau,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+%    \vspace{20mm}
+      \parbox{\Wiv/\nau}{\centering \@coautoruno} \\ \if\@coautoruno\@empty  \else \barfecha \fi \vspace{0.5em}
+    \end{minipage}
+\end{textblock*}
+
+\ifnum \nau=3
+    \begin{textblock*}{\Wiv/\nau+\TPboxrulesize}(\StartX+\Wiv/\nau+\Wiv/\nau,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+        \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    %    \vspace{20mm}
+        \parbox{\Wiv/\nau}{\centering \@coautordos} \\ \if\@coautordos\@empty  \else \barfecha \fi \vspace{0.5em}
+        \end{minipage}
+    \end{textblock*}
+\fi
+
+\ifnum \nau=4
+    \begin{textblock*}{\Wiv/\nau+\TPboxrulesize}(\StartX+\Wiv/\nau+\Wiv/\nau,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+        \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    %    \vspace{20mm}
+        \parbox{\Wiv/\nau}{\centering \@coautordos} \\ \if\@coautordos\@empty  \else \barfecha \fi \vspace{0.5em}
+        \end{minipage}
+    \end{textblock*}
+
+    \begin{textblock*}{\Wiv/\nau+\TPboxrulesize}(\StartX+\Wiv/\nau+\Wiv/\nau+\Wiv/\nau,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+        \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    %    \vspace{20mm}
+        \parbox{\Wiv/\nau}{\centering \@coautortres} \\ \if\@coautortres\@empty  \else \barfecha \fi \vspace{0.5em}
+        \end{minipage}
+    \end{textblock*}
+\fi
+
+%----------------------------Para los revisores------------------------------------------
+
+\begin{textblock*}{\Wv/\nre+\TPboxrulesize}(\StartX+\Wiv,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \parbox{\Wv/\nre}{\centering \@revisoruno} \\ \barfecha \vspace{0.5em}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wv/\nre+\TPboxrulesize}(\StartX+\Wiv+\Wv/\nre,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \ifx\@revisordos\undefined
+        % No pongo nada
+    \else
+        \parbox{\Wv/\nre}{\centering \@revisordos} \\ \if\@revisordos\@empty  \else \barfecha \fi \vspace{0.5em}
+    \fi
+    \end{minipage}
+\end{textblock*}
+
+%\ifnum \nau=2
+\ifnum \nre=3
+\begin{textblock*}{\Wv/\nre+\TPboxrulesize}(\StartX+\Wiv+\Wv/\nre+\Wv/\nre,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \ifx\@revisortres\undefined
+        % No pongo nada
+    \else
+        \parbox{\Wv/\nre}{\centering \@revisortres} \\ \if\@revisortres\@empty  \else \barfecha \fi \vspace{0.5em}
+    \fi
+    \end{minipage}
+\end{textblock*}
+\fi
+%\fi
+
+
+\setlength{\TPboxrulesize}{0.6mm}
+\begin{textblock*}{\Wiv+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[c][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}
+      \end{minipage}
+\end{textblock*}
+%-------------------------------------------------------------------------------------------
+
+\begin{textblock*}{\Wvi+\TPboxrulesize}(\StartX+\Wiv+\Wv,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+%    \vspace{20mm}
+      \parbox{\Wvi}{\centering \@calidad} \\ \barfecha \vspace{0.5em}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wvii+\TPboxrulesize}(\StartX+\Wiv+\Wv+\Wvi,\StartY+\Hi+\Hiv+\Hv+\Hvi)%
+    \noindent\begin{minipage}[b][\Hvii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+%    \vspace{20mm}
+      \parbox{\Wvii}{\centering \@aprobo} \\ \barfecha \vspace{0.5em}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii)%
+    \noindent\hspace{2mm}\begin{minipage}[c][\Hvia + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \textbf{REVISIONES}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wviii+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia)%
+    \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\textbf{Rev.}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wix+\TPboxrulesize}(\StartX+\Wviii,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia)%
+    \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\textbf{Fecha}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wx+\TPboxrulesize}(\StartX+\Wviii+\Wix,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia)%
+    \begin{minipage}[c][\Hviii + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \centering\textbf{Modificaciones}
+    \end{minipage}
+\end{textblock*}
+\makeatother
+
+% Renglones para la parte de "REVISIONES" (definido al comienzo)
+\setlength{\TPboxrulesize}{0.3mm}
+
+% Se permite completar solo el primer renglón
+% Si fuera necesario, se debe repetir para los tres renglones siguientes
+\renglon{\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii}{
+\ifdefined\@RevCeroNum \@RevCeroNum \fi}{
+\ifdefined\@RevCeroDate \@RevCeroDate \fi}{
+\ifdefined\@RevCeroMod \@RevCeroMod \fi}
+
+\renglon{\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii+\Hviii}{}{}{}
+\renglon{\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii+\Hviii+\Hviii}{}{}{}
+\renglon{\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii+\Hviii+\Hviii+\Hviii}{}{}{} % no es necesaria
+\setlength{\TPboxrulesize}{0.6mm}
+%-----Fin de los renglones-----
+
+% Para poner la línea de borde más gruesa en donde van los nombres, pongo cajas vacías
+\begin{textblock*}{\Wviii+\Wix+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii)%
+    \begin{minipage}[c][\Hviii * 4 + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \end{minipage}
+\end{textblock*}
+\begin{textblock*}{\Wviii+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii)%
+    \begin{minipage}[c][\Hviii * 4 + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \end{minipage}
+\end{textblock*}
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii)%
+    \begin{minipage}[c][\Hviii * 4 + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \end{minipage}
+\end{textblock*}
+%-----Fin de las cajas vacías----
+
+
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii*5)%
+    \noindent\hspace{2mm}\begin{minipage}[c][\Hvi + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \textbf{FECHA DE VIGENCIA:} \vigencialiberada
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wxi+\TPboxrulesize}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii*5+\Hvi)%
+    \noindent\hspace{2mm}\begin{minipage}[t][\Hix + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \vspace{3mm}\parbox[b]{60mm}{\hspace{26mm} \textbf{DISTRIBUCIÓN}}      
+      \vspace{1mm}\flushleft\parbox[b]{80mm}{\noindent Copia N°: \copialiberada}
+      \vspace{-0.3cm}\flushleft\parbox[b]{30mm}{\noindent Distribuyó:}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wxi+\TPboxrulesize}(\StartX+\Wxi,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii*5+\Hvi)%
+    \noindent\hspace{2mm}\begin{minipage}[t][\Hix + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+    \vspace{3.8mm}\hspace{16mm}\parbox[b]{55mm}{\textbf{ESTADO DEL DOCUMENTO}}
+     \vspace{-5mm}\center\parbox[b]{80mm}{\textoliberado}           
+     \vspace{-1cm}\flushleft\parbox[b]{80mm}{\noindent Fecha: \fechaliberada}          
+     \vspace{-0.6cm}\flushleft\parbox[b]{70mm}{\noindent Firma:}
+    \end{minipage}
+\end{textblock*}
+
+\begin{textblock*}{\Wtot}(\StartX,\StartY+\Hi+\Hiv+\Hv+\Hvi+\Hvii+\Hvia+\Hviii*5+\Hvi+\Hix)%
+    \noindent\hspace{2mm}\begin{minipage}[c][\Hx + \TPboxrulesize]{\linewidth - 10\fboxsep}%
+      \noindent\vspace{1mm}\textbf{\footnotesize{NOTA:}}\hspace{3mm}\parbox[t]{155mm}{\footnotesize Este documento es propiedad de CNEA y se reserva todos los derechos legales sobre él. No está permitida la explotación, transferencia o liberación de ninguna información en el contenido, ni hacer reproducciones y entregarlas a terceros sin un acuerdo previo y escrito de CNEA.}
+    \end{minipage}
+\end{textblock*}
+
+% El nombre oficial del formulario F0-PR-001 r 2, va arriba a la izquierda
+\setlength{\TPboxrulesize}{0mm}
+\begin{textblock*}{\Wtot}(\StartX,\StartY-6mm)%
+\vspace{3mm} \noindent \scriptsize\textsf{FO-PR-001 r 2}
+\end{textblock*}
+
+\null\newpage
+}%                  viene del \def\maketitle (línea~166)
+
+\makeatother
+
+%%-----Fin de la carátula del informe------------------------------------------------------
