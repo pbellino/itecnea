@@ -14,7 +14,7 @@ $(NAME).pdf: src/$(NAME).tex src/src_figs/* src/*
 	cp ./src/$(NAME).tex ./build/
 	cp ./src/tb*.tex ./build/
 	cp -r ./src/src_figs ./build/src_figs
-	cp ./src/itecnea.sty ./build/
+	cp ./src/itecnea_ra3.sty ./build/
 	cp ./src/LogoCNEA.pdf ./build/
 	cp ./src/biblio.bib ./build/
 	cp ./src/unsrtnat_pablo.bst ./build/
